@@ -1,5 +1,5 @@
 # My-Learnings
-##SALES REPORT			
+##  SALES REPORT			
 Sales Persons	Month	Sales	Result
 GANESH	March	7500	😌
 MAHESH	March	18000	😃
