@@ -12,3 +12,4 @@ SESHU	March	14000	😃
 SONU	March	4000	😌
 SURESH	March	35000	😃
 ![image](https://user-images.githubusercontent.com/66559457/222322235-b4c13ce4-d7a7-4ca7-9f65-b85ae1266341.png)
+![FAANG SQL interview Question Practice](https://user-images.githubusercontent.com/66559457/222329362-3c09636e-326a-49b2-821b-f4d417e4956f.png)
