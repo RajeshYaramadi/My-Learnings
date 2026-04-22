@@ -1,0 +1,195 @@
+SCRIPT_STR(
+"
+# ============================================
+# STEP 1: IMPORT LIBRARIES
+# ============================================
+# pandas  - to create DataFrame from parsed data
+# simplejson - to parse JSON strings (faster than built-in json)
+import pandas as pd
+import simplejson as json
+
+# ============================================
+# STEP 2: CREATE EMPTY LIST
+# ============================================
+# This list will store one dictionary per row
+# Each dictionary = one row of parsed JSON values
+records = []
+
+# ============================================
+# STEP 3: LOOP THROUGH EVERY ROW
+# ============================================
+# _arg1 = all values from ATTR([Additional Info]) column
+# s     = one JSON string value from one row at a time
+for s in _arg1:
+
+    # ============================================
+    # STEP 4: TRY BLOCK - SAFE EXECUTION
+    # ============================================
+    # If anything fails inside try → goes to except
+    # Prevents entire script from crashing on one bad row
+    try:
+
+        # ============================================
+        # STEP 5: NULL / EMPTY CHECK
+        # ============================================
+        # Impala can send NULL in many formats
+        # Check all possible null formats before parsing
+        # s is None     → Python None from Impala NULL
+        # strip()==''   → empty string
+        # 'None'        → string None
+        # 'null'        → lowercase null
+        # 'NULL'        → uppercase NULL
+        if s is None or str(s).strip() in ('', 'None', 'null', 'NULL'):
+
+            # If NULL → append empty strings for all fields
+            # No point trying to parse empty value
+            records.append({
+                'workGroup_value'   : '',
+                'workGroup_actionBy': '',
+                'workGroup_actionAt': '',
+                'user_value'        : '',
+                'user_actionBy'     : '',
+                'id'                : ''
+            })
+
+        # ============================================
+        # STEP 6: PARSE VALID JSON STRING
+        # ============================================
+        else:
+            # json.loads() converts JSON string → Python dictionary
+            # Input  : '[{\"workGroup\":{\"value\":\"test\"}}]'
+            # Output : [{'workGroup': {'value': 'test'}}]
+            data = json.loads(s)
+
+            # ============================================
+            # STEP 7: UNWRAP ARRAY WRAPPER
+            # ============================================
+            # Your JSON starts with [ ] → it is a LIST
+            # We need the DICT inside the list → data[0]
+            # Before : [{'workGroup': {'value': 'test'}}]
+            # After  : {'workGroup': {'value': 'test'}}
+            if isinstance(data, list):
+                data = data[0]
+
+            # ============================================
+            # STEP 8: EXTRACT EACH KEY AND APPEND
+            # ============================================
+            # data.get('workGroup', {})
+            #   → get workGroup key from data
+            #   → if workGroup missing → return {} empty dict
+            #
+            # .get('value', '')
+            #   → get value key from workGroup
+            #   → if value missing → return '' empty string
+            #
+            # or ''
+            #   → if value is None → return '' instead of None
+            #
+            # str(...)
+            #   → convert everything to string for SCRIPT_STR
+            records.append({
+                'workGroup_value'   : str(data.get('workGroup',{}).get('value','') or ''),
+                'workGroup_actionBy': str(data.get('workGroup',{}).get('actionBy','') or ''),
+                'workGroup_actionAt': str(data.get('workGroup',{}).get('actionAt','') or ''),
+                'user_value'        : str(data.get('user',{}).get('value','') or ''),
+                'user_actionBy'     : str(data.get('user',{}).get('actionBy','') or ''),
+                'id'                : str(data.get('id',''))
+            })
+
+    # ============================================
+    # STEP 9: EXCEPT BLOCK - HANDLE ANY ERROR
+    # ============================================
+    # If any error occurs in try block → comes here
+    # Appends empty strings for that row
+    # Script continues to next row → never crashes
+    except:
+        records.append({
+            'workGroup_value'   : '',
+            'workGroup_actionBy': '',
+            'workGroup_actionAt': '',
+            'user_value'        : '',
+            'user_actionBy'     : '',
+            'id'                : ''
+        })
+
+# ============================================
+# STEP 10: CREATE DATAFRAME
+# ============================================
+# Convert list of dictionaries → pandas DataFrame
+# Each dictionary = one row
+# Each key        = one column
+# records = [
+#   {'workGroup_value':'test', 'workGroup_actionBy':'DP70497'...},
+#   {'workGroup_value':''    , 'workGroup_actionBy':''       ...},
+# ]
+df = pd.DataFrame(records)
+
+# ============================================
+# STEP 11: RETURN ONE COLUMN AS LIST
+# ============================================
+# SCRIPT_STR can only return ONE column at a time
+# df['workGroup_actionBy'] → select that column
+# .tolist()                → convert to Python list
+# Tableau receives this list as calculated field result
+# 
+# TO GET OTHER COLUMNS → change column name here:
+# df['workGroup_value'].tolist()
+# df['workGroup_actionAt'].tolist()
+# df['user_value'].tolist()
+# df['user_actionBy'].tolist()
+# df['id'].tolist()
+return df['workGroup_actionBy'].tolist()
+",
+
+# ============================================
+# STEP 12: PASS TABLEAU COLUMN AS INPUT
+# ============================================
+# ATTR([Additional Info]) → passes your Impala JSON
+# column to Python script as _arg1
+# ATTR() needed because SCRIPT_* requires aggregated input
+ATTR([Additional Info])
+)
+
+Visual Flow
+ATTR([Additional Info])        ← Tableau passes JSON column
+         ↓
+    _arg1 = [row1, row2, ...]  ← Python receives as list
+         ↓
+    for s in _arg1             ← loop each row
+         ↓
+    NULL check                 ← skip if empty
+         ↓
+    json.loads(s)              ← string → dictionary
+         ↓
+    data[0]                    ← unwrap [ ] array
+         ↓
+    data.get().get()           ← extract each key
+         ↓
+    records = [{...},{...}]    ← list of dictionaries
+         ↓
+    pd.DataFrame(records)      ← list → table
+         ↓
+    df['column'].tolist()      ← one column → list
+         ↓
+    Tableau shows result       ← as calculated field
+
+Change This One Line for Each Calculated Field
+python# Field 1 → workGroup_value
+return df['workGroup_value'].tolist()
+
+# Field 2 → workGroup_actionBy
+return df['workGroup_actionBy'].tolist()
+
+# Field 3 → workGroup_actionAt
+return df['workGroup_actionAt'].tolist()
+
+# Field 4 → user_value
+return df['user_value'].tolist()
+
+# Field 5 → user_actionBy
+return df['user_actionBy'].tolist()
+
+# Field 6 → id
+return df['id'].tolist()
+
+💡 Everything else stays exactly the same — only change the column name in the last return line for each calculated field!
