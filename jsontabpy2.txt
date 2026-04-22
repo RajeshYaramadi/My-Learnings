@@ -1,0 +1,41 @@
+SCRIPT_STR(
+"
+import pandas as pd
+import simplejson as json
+records = []
+for s in _arg1:
+    try:
+        if s is None or str(s).strip() in ('', 'None', 'null', 'NULL'):
+            records.append({
+                'workGroup_value'   : '',
+                'workGroup_actionBy': '',
+                'workGroup_actionAt': '',
+                'user_value'        : '',
+                'user_actionBy'     : '',
+                'id'                : ''
+            })
+        else:
+            data = json.loads(s)
+            if isinstance(data, list): data = data[0]
+            records.append({
+                'workGroup_value'   : str(data.get('workGroup',{}).get('value','') or ''),
+                'workGroup_actionBy': str(data.get('workGroup',{}).get('actionBy','') or ''),
+                'workGroup_actionAt': str(data.get('workGroup',{}).get('actionAt','') or ''),
+                'user_value'        : str(data.get('user',{}).get('value','') or ''),
+                'user_actionBy'     : str(data.get('user',{}).get('actionBy','') or ''),
+                'id'                : str(data.get('id',''))
+            })
+    except:
+        records.append({
+            'workGroup_value'   : '',
+            'workGroup_actionBy': '',
+            'workGroup_actionAt': '',
+            'user_value'        : '',
+            'user_actionBy'     : '',
+            'id'                : ''
+        })
+df = pd.DataFrame(records)
+return df['workGroup_actionBy'].tolist()
+",
+ATTR([Additional Info])
+)
