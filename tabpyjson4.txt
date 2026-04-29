@@ -40,15 +40,16 @@ for s in _arg1:
                 all_user_aat.append(str(item.get('user',{}).get('actionAt','') or ''))
                 all_ids.append(str(item.get('id','') or ''))
 
-            records.append({
-                'workGroup_value'   : '\\n'.join([f'Q{i+1} {v}' for i, v in enumerate(all_values)]),
-                'workGroup_actionBy': '\\n'.join([f'Q{i+1} {v}' for i, v in enumerate(all_actionby)]),
-                'workGroup_actionAt': '\\n'.join([f'Q{i+1} {v}' for i, v in enumerate(all_actionat)]),
-                'user_value'        : '\\n'.join([f'Q{i+1} {v}' for i, v in enumerate(all_user_value)]),
-                'user_actionBy'     : '\\n'.join([f'Q{i+1} {v}' for i, v in enumerate(all_user_aby)]),
-                'user_actionAt'     : '\\n'.join([f'Q{i+1} {v}' for i, v in enumerate(all_user_aat)]),
-                'id'                : '\\n'.join([f'Q{i+1} {v}' for i, v in enumerate(all_ids)])
-            })
+         
+			records.append({
+    'workGroup_value'   : '\\n'.join([f'Q{len(all_values)-i} {v}' for i, v in enumerate(all_values)]),
+    'workGroup_actionBy': '\\n'.join([f'Q{len(all_actionby)-i} {v}' for i, v in enumerate(all_actionby)]),
+    'workGroup_actionAt': '\\n'.join([f'Q{len(all_actionat)-i} {v}' for i, v in enumerate(all_actionat)]),
+    'user_value'        : '\\n'.join([f'Q{len(all_user_value)-i} {v}' for i, v in enumerate(all_user_value)]),
+    'user_actionBy'     : '\\n'.join([f'Q{len(all_user_aby)-i} {v}' for i, v in enumerate(all_user_aby)]),
+    'user_actionAt'     : '\\n'.join([f'Q{len(all_user_aat)-i} {v}' for i, v in enumerate(all_user_aat)]),
+    'id'                : '\\n'.join([f'Q{len(all_ids)-i} {v}' for i, v in enumerate(all_ids)])
+})
 
     except:
         records.append({
