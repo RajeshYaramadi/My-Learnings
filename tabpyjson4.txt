@@ -2,7 +2,9 @@ SCRIPT_STR(
 "
 import pandas as pd
 import simplejson as json
+
 records = []
+
 for s in _arg1:
     try:
         if s is None or str(s).strip() in ('', 'None', 'null', 'NULL'):
@@ -17,10 +19,10 @@ for s in _arg1:
             })
         else:
             data = json.loads(s)
-            # Handle both single {} and array [{}]
+
             if not isinstance(data, list):
                 data = [data]
-            # Collect values from ALL objects
+
             all_values      = []
             all_actionby    = []
             all_actionat    = []
@@ -28,30 +30,26 @@ for s in _arg1:
             all_user_aby    = []
             all_user_aat    = []
             all_ids         = []
+
             for item in data:
-                # workGroup.value → inside workGroup
                 all_values.append(str(item.get('workGroup',{}).get('value','') or ''))
-                # actionBy → ROOT level
                 all_actionby.append(str(item.get('actionBy','') or ''))
-                # actionAt → ROOT level
                 all_actionat.append(str(item.get('actionAt','') or ''))
-                # user.value → inside user
                 all_user_value.append(str(item.get('user',{}).get('value','') or ''))
-                # user.actionBy → inside user
                 all_user_aby.append(str(item.get('user',{}).get('actionBy','') or ''))
-                # user.actionAt → inside user ← NEW FIELD ADDED
                 all_user_aat.append(str(item.get('user',{}).get('actionAt','') or ''))
-                # id → ROOT level
                 all_ids.append(str(item.get('id','') or ''))
+
             records.append({
-                'workGroup_value'   : ' | '.join(all_values),
-                'workGroup_actionBy': ' | '.join(all_actionby),
-                'workGroup_actionAt': ' | '.join(all_actionat),
-                'user_value'        : ' | '.join(all_user_value),
-                'user_actionBy'     : ' | '.join(all_user_aby),
-                'user_actionAt'     : ' | '.join(all_user_aat),
-                'id'                : ' | '.join(all_ids)
+                'workGroup_value'   : '\\n'.join([f'Q{i+1} {v}' for i, v in enumerate(all_values)]),
+                'workGroup_actionBy': '\\n'.join([f'Q{i+1} {v}' for i, v in enumerate(all_actionby)]),
+                'workGroup_actionAt': '\\n'.join([f'Q{i+1} {v}' for i, v in enumerate(all_actionat)]),
+                'user_value'        : '\\n'.join([f'Q{i+1} {v}' for i, v in enumerate(all_user_value)]),
+                'user_actionBy'     : '\\n'.join([f'Q{i+1} {v}' for i, v in enumerate(all_user_aby)]),
+                'user_actionAt'     : '\\n'.join([f'Q{i+1} {v}' for i, v in enumerate(all_user_aat)]),
+                'id'                : '\\n'.join([f'Q{i+1} {v}' for i, v in enumerate(all_ids)])
             })
+
     except:
         records.append({
             'workGroup_value'   : '',
@@ -62,8 +60,10 @@ for s in _arg1:
             'user_actionAt'     : '',
             'id'                : ''
         })
+
 df = pd.DataFrame(records)
-return df['workGroup_actionBy'].tolist()
+
+return df['workGroup_value'].tolist()
 ",
 ATTR([Additional Info])
 )
